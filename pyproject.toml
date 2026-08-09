@@ -1,0 +1,35 @@
+[project]
+name = "podpack-notes"
+version = "0.1.0"
+description = "A small notes app for podpack sites, and the worked example of one"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["podpack"]
+
+[[project.authors]]
+name = "Steve Holden"
+email = "steve@holdenweb.com"
+
+[build-system]
+requires = ["uv_build>=0.8.4,<0.9.0"]
+build-backend = "uv_build"
+
+# The distribution is `podpack-notes` and the import name `podpack_notes`, while
+# the app answers to `notes` -- its blueprint's name, which is what keys
+# [apps.notes], [site.mounts] and the directories on disk. Three spellings of
+# one thing, which is a wart the framework documents rather than hides.
+[tool.uv.build-backend]
+module-name = "podpack_notes"
+
+[tool.uv.sources]
+# A sibling checkout while podpack is unpublished. A site deploying this app in
+# a container needs a *git* source instead: a path cannot be resolved inside a
+# build, which fails with "Distribution not found at: file:///...".
+podpack = { path = "../podpack", editable = true }
+
+[dependency-groups]
+dev = ["pytest>=8.0", "mypy>=1.11"]
+
+[tool.mypy]
+files = ["src", "tests"]
+ignore_missing_imports = true
