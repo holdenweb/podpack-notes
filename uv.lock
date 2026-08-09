@@ -500,29 +500,14 @@ wheels = [
 
 [[package]]
 name = "podpack"
-version = "0.1.1"
-source = { editable = "../podpack" }
+version = "0.2.0"
+source = { git = "https://github.com/holdenweb/podpack.git#66f8614f16470dcf54b54b7eacdbaa8770171e22" }
 dependencies = [
     { name = "alembic" },
     { name = "flask" },
     { name = "flask-sqlalchemy" },
     { name = "gunicorn" },
     { name = "psycopg2-binary" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", specifier = ">=1.13" },
-    { name = "flask", specifier = ">=3.0" },
-    { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
-    { name = "gunicorn", specifier = ">=22.0" },
-    { name = "psycopg2-binary", specifier = ">=2.9.10" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.11" },
-    { name = "pytest", specifier = ">=8.0" },
 ]
 
 [[package]]
@@ -540,7 +525,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "podpack", editable = "../podpack" }]
+requires-dist = [{ name = "podpack", git = "https://github.com/holdenweb/podpack.git" }]
 
 [package.metadata.requires-dev]
 dev = [

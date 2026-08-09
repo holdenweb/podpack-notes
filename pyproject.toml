@@ -22,10 +22,20 @@ build-backend = "uv_build"
 module-name = "podpack_notes"
 
 [tool.uv.sources]
-# A sibling checkout while podpack is unpublished. A site deploying this app in
-# a container needs a *git* source instead: a path cannot be resolved inside a
-# build, which fails with "Distribution not found at: file:///...".
-podpack = { path = "../podpack", editable = true }
+# git rather than a sibling path, and the distinction is not cosmetic: uv honours
+# a dependency's own sources when it resolves it, so a path here is interpreted
+# inside *this* package's checkout by anyone who installs it. A consumer got
+#
+#   git+https://github.com/holdenweb/podpack-notes.git#subdirectory=../podpack
+#   has no subdirectory `../podpack`
+#
+# which is this line leaking into their resolution. A path source in a published
+# package is not a local convenience; it is a defect in what you publish.
+#
+# To work on both repositories at once, install the sibling over the top:
+#
+#     uv sync --all-groups && uv pip install -e ../podpack
+podpack = { git = "https://github.com/holdenweb/podpack.git" }
 
 [dependency-groups]
 dev = ["pytest>=8.0", "mypy>=1.11"]
