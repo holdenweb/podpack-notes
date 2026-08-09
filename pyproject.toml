@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A small notes app for podpack sites, and the worked example of one"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["podpack"]
+dependencies = []
 
 [[project.authors]]
 name = "Steve Holden"
@@ -21,21 +21,22 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = "podpack_notes"
 
-[tool.uv.sources]
-# git rather than a sibling path, and the distinction is not cosmetic: uv honours
-# a dependency's own sources when it resolves it, so a path here is interpreted
-# inside *this* package's checkout by anyone who installs it. A consumer got
+# podpack is deliberately absent from `dependencies`, for the same reason it is
+# absent from pp-pdf's: declaring it binds at *lock* time. Here it also creates a
+# circle that cannot be resolved at all -- podpack's own lab installs this app,
+# so podpack depends on podpack-notes, and uv then sees two different URLs for
+# podpack (the local project, and whatever this file names) and refuses:
 #
-#   git+https://github.com/holdenweb/podpack-notes.git#subdirectory=../podpack
-#   has no subdirectory `../podpack`
+#   Requirements contain conflicting URLs for package `podpack`:
+#     - file:///Users/sholden/sites/podpack (editable)
+#     - git+https://github.com/holdenweb/podpack.git
 #
-# which is this line leaking into their resolution. A path source in a published
-# package is not a local convenience; it is a defect in what you publish.
+# An app is loaded *by* podpack, so podpack is present by construction wherever
+# this app runs. A site installs both, and says so in its own pyproject.
 #
-# To work on both repositories at once, install the sibling over the top:
+# Install it into the venv for development, leaving the lock alone:
 #
 #     uv sync --all-groups && uv pip install -e ../podpack
-podpack = { git = "https://github.com/holdenweb/podpack.git" }
 
 [dependency-groups]
 dev = ["pytest>=8.0", "mypy>=1.11"]

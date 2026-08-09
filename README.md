@@ -13,10 +13,11 @@ Add the distribution as a dependency, then the **import** name to the site's app
 list:
 
 ```toml
-# the site's pyproject.toml
-dependencies = ["podpack-notes"]
+# the site's pyproject.toml -- both, because an app does not pull in its framework
+dependencies = ["podpack", "podpack-notes"]
 
 [tool.uv.sources]
+podpack = { git = "https://github.com/holdenweb/podpack.git" }
 podpack-notes = { git = "https://github.com/holdenweb/podpack-notes.git" }
 ```
 
