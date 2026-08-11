@@ -3,6 +3,8 @@ name = "podpack-notes"
 version = "0.1.0"
 description = "A small notes app for podpack sites, and the worked example of one"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENCE"]
 requires-python = ">=3.12"
 dependencies = []
 
