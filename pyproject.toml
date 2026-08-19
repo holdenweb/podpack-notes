@@ -41,7 +41,17 @@ module-name = "podpack_notes"
 #     uv sync --all-groups && uv pip install -e ../podpack
 
 [dependency-groups]
-dev = ["pytest>=8.0", "mypy>=1.11"]
+# podpack is here rather than in `dependencies`: an app must not pin the
+# framework version of the site installing it. A dependency group is dev-only
+# metadata and constrains nobody downstream.
+#
+# From the repository, so `uv sync` works on any machine and in CI, which is
+# now what publishes this package. It was previously opted into by hand with
+# `uv pip install -e ../podpack`, which needed a sibling checkout.
+dev = ["pytest>=8.0", "mypy>=1.11", "podpack"]
+
+[tool.uv.sources]
+podpack = { git = "https://github.com/holdenweb/podpack.git" }
 
 [tool.mypy]
 files = ["src", "tests"]
