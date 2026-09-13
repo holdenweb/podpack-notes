@@ -1,0 +1,32 @@
+# Test on every push to main and every pull request.
+#
+# publish.yml runs the tests too, but only when a release tag is pushed -- the
+# most expensive moment to find one failing. This runs them while a fix is
+# cheap, and adds mypy, which is configured here but has never been gated.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same ref makes an in-flight run pointless; drop it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Types
+        run: uv run mypy
+
+      - name: Tests
+        run: uv run pytest -q
