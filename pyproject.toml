@@ -6,7 +6,12 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENCE"]
 requires-python = ">=3.12"
-dependencies = []
+# flask-wtf arrives transitively today, since flask-security depends on it and
+# podpack installs flask-security on every site. Declared anyway: this app now
+# imports it directly, and a dependency held only by somebody else's dependency
+# is one refactor upstream from vanishing. podpack-pdf and podpack-qrcode
+# declare the same pair.
+dependencies = ["flask-wtf>=1.2.1", "wtforms>=3.0"]
 
 [[project.authors]]
 name = "Steve Holden"

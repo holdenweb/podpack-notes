@@ -20,13 +20,14 @@ import pathlib
 from logging import getLogger
 
 import sqlalchemy as sa
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
 from flask_security import auth_required, current_user
 
 from podpack import app_config, db
 from podpack.paths import data_dir
 
+from .forms import NoteForm
 from .models import Note
 
 logger = getLogger(__name__)
@@ -40,12 +41,7 @@ WELCOME_FILE = "welcome.md"
 @auth_required("token", "session")
 def index() -> ResponseReturnValue:
     """The app's own page, rendered in whatever chrome the site provides."""
-    return render_template(
-        "notes/index.html",
-        title="Notes",
-        notes=_recent(current_user.id),
-        welcome=_welcome_text(),
-    )
+    return _index_page(NoteForm())
 
 
 @blueprint.route("/list")
@@ -57,15 +53,60 @@ def list_notes() -> ResponseReturnValue:
 @blueprint.route("/", methods=["POST"])
 @auth_required("token", "session")
 def add_note() -> ResponseReturnValue:
-    """Persist a note, i.e. write to the host-mapped database directory."""
-    text = (request.get_json(silent=True) or {}).get("text", "").strip()
-    if not text:
-        return jsonify(error="a non-empty 'text' field is required"), 400
+    """Persist a note, i.e. write to the host-mapped database directory.
+
+    Both kinds of caller arrive here, because creating a note is one operation
+    however it was typed: a JSON body is answered in JSON as it always was, and
+    the form on the index page is answered with a redirect back to that page.
+    Giving the browser a route of its own would be a second name for one thing.
+
+    Which branch is taken is decided by `request.is_json` and not by the form
+    failing to validate. A form post that arrives without a CSRF token fails to
+    validate too, and falling through on that would answer a browser with the
+    API's 400 JSON instead of the page it had just submitted.
+    """
+    if request.is_json:
+        text = (request.get_json(silent=True) or {}).get("text", "").strip()
+        if not text:
+            return jsonify(error="a non-empty 'text' field is required"), 400
+        return jsonify(stored=_store(text).as_dict()), 201
+
+    form = NoteForm()
+    if form.validate_on_submit():
+        _store(form.text.data.strip())
+        # Redirected rather than rendered, so that reloading the page that
+        # results does not offer to submit the note a second time. The new note
+        # is at the top of the list this lands on.
+        return redirect(url_for("notes.index"))
+    # Otherwise back to the page it was typed on, with the text still in the box
+    # and the field's own complaint beside it -- and with 200, exactly as
+    # flask-security answers a login it has rejected.
+    return _index_page(form)
+
+
+def _store(text: str) -> Note:
+    """The one place a note is created, whichever caller asked for it."""
     note = Note(text=text, owner_id=current_user.id)
     db.session.add(note)
     db.session.commit()
     logger.info("stored note of %d characters for user %s", len(text), current_user.id)
-    return jsonify(stored=note.as_dict()), 201
+    return note
+
+
+def _index_page(form: NoteForm) -> str:
+    """This app's page, with the form in whatever state it has reached.
+
+    Shared by the GET and by a POST that failed validation, which is what lets a
+    rejected note come back on the page it was written on rather than on a bare
+    error page somewhere else.
+    """
+    return render_template(
+        "notes/index.html",
+        title="Notes",
+        notes=_recent(current_user.id),
+        welcome=_welcome_text(),
+        form=form,
+    )
 
 
 @blueprint.route("/uploads/<name>", methods=["POST"])

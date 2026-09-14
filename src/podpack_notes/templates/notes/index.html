@@ -8,6 +8,22 @@
 <blockquote>{{ welcome }}</blockquote>
 {% endif %}
 <h2>Notes</h2>
+{# The browser's way in. `hidden_tag()` is what carries the CSRF token, and is
+   the reason this is a flask-wtf form rather than markup written out by hand --
+   podpack installs no site-wide CSRFProtect, so a bare <form> posting to a
+   cookie-authenticated route would take one from any origin that asked. #}
+<form method="post" action="{{ url_for('notes.index') }}">
+  {{ form.hidden_tag() }}
+  <p>{{ form.text(rows=3, cols=60, placeholder="Write a note") }}</p>
+  {# Every field's errors and not just the textarea's. A missing or expired
+     CSRF token is an error on `csrf_token`, so rendering `text.errors` alone
+     brought the page back silently unchanged with nothing said -- which is what
+     the test asserting the message caught. #}
+  {% for _field, errors in form.errors.items() %}
+  {% for error in errors %}<p><small>{{ error }}</small></p>{% endfor %}
+  {% endfor %}
+  <p>{{ form.submit() }}</p>
+</form>
 {% if notes %}
 <ul>
   {% for note in notes %}

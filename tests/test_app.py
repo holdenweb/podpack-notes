@@ -123,6 +123,63 @@ def test_an_empty_note_is_refused(client: FlaskClient) -> None:
     assert response.status_code == 400
 
 
+def test_the_page_offers_a_form(client: FlaskClient) -> None:
+    """The browser's way in, beside the API the page's curl line documents."""
+    body = client.get("/notes/").get_data(as_text=True)
+    assert '<form method="post" action="/notes/">' in body
+    assert 'name="text"' in body
+
+
+def test_the_form_stores_a_note_for_the_caller(app: Flask, client: FlaskClient) -> None:
+    """Posted the way a browser posts it -- form encoding, not JSON.
+
+    Which is the whole point of the test: `add_note` reads JSON when it is given
+    JSON, and a form arriving at the same URL used to fall into that branch and
+    be told a non-empty 'text' field was required while holding one.
+    """
+    response = client.post("/notes/", data={"text": "typed into the page"})
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/notes/")
+
+    with app.app_context():
+        note = db.session.scalars(sa.select(Note)).one()
+        assert note.text == "typed into the page"
+        assert note.owner.email == OWNER
+    assert "typed into the page" in client.get("/notes/").get_data(as_text=True)
+
+
+def test_an_empty_form_submission_is_refused(app: Flask, client: FlaskClient) -> None:
+    """Whitespace counts as absent, the same judgement the JSON route makes.
+
+    The body is asserted and not the status, because a rejected form re-renders
+    the page with 200 exactly as flask-security's own rejected login does -- so a
+    test reading the status would have passed whatever the validator said, which
+    is the trap `conftest.login` documents for the same reason.
+    """
+    body = client.post("/notes/", data={"text": "   "}).get_data(as_text=True)
+    assert "This field is required." in body
+    with app.app_context():
+        assert db.session.scalars(sa.select(Note)).all() == []
+
+
+def test_the_form_is_checked_for_a_csrf_token(app: Flask, client: FlaskClient) -> None:
+    """The reason the form is a `FlaskForm` rather than markup written by hand.
+
+    conftest turns CSRF off for every other test in this file, so this one turns
+    it back on. Without that it could not fail: with `WTF_CSRF_ENABLED` false
+    `hidden_tag()` renders nothing at all, and the test would pass just as
+    happily against a form carrying no token anywhere.
+    """
+    app.config["WTF_CSRF_ENABLED"] = True
+
+    assert 'name="csrf_token"' in client.get("/notes/").get_data(as_text=True)
+
+    body = client.post("/notes/", data={"text": "no token"}).get_data(as_text=True)
+    assert "The CSRF token is missing." in body
+    with app.app_context():
+        assert db.session.scalars(sa.select(Note)).all() == []
+
+
 def test_a_user_sees_only_their_own_notes(
     client: FlaskClient, stranger: FlaskClient
 ) -> None:
