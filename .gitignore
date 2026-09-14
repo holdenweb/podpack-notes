@@ -5,3 +5,6 @@ __pycache__/
 dist/
 *.egg-info/
 *.wp?
+
+# Built from README.md for previewing; the source is the markdown.
+README.html
