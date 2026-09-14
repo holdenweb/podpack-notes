@@ -736,7 +736,7 @@ dependencies = [
 
 [[package]]
 name = "podpack-notes"
-version = "0.1.2"
+version = "0.1.2+dev"
 source = { editable = "." }
 
 [package.dev-dependencies]
