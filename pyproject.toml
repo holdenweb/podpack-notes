@@ -1,6 +1,6 @@
 [project]
 name = "podpack-notes"
-version = "0.1.2+dev"
+version = "0.1.3"
 description = "A small notes app for podpack sites, and the worked example of one"
 readme = "README.md"
 license = "MIT"
