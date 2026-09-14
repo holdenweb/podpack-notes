@@ -15,8 +15,9 @@
   {% endfor %}
 </ul>
 {% else %}
-<p>No notes yet.</p>
+<p>You have no notes yet.</p>
 {% endif %}
-<p><small>Post one with
-<code>curl -X POST -H 'Content-Type: application/json' -d '{"text":"hello"}' /notes/</code></small></p>
+<p><small>These are yours alone. Post one with
+<code>curl -X POST -H 'Content-Type: application/json' -H "Authentication-Token: $TOKEN" -d '{"text":"hello"}' /notes/</code>
+&mdash; flask-security issues <code>$TOKEN</code> in reply to a JSON POST to <code>/login?include_auth_token</code>.</small></p>
 {% endblock %}
