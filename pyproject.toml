@@ -7,6 +7,20 @@ license = "MIT"
 license-files = ["LICENCE"]
 requires-python = ">=3.12"
 # flask-wtf arrives transitively today, since flask-security depends on it and
+keywords = ["flask", "plugins", "web", "containers", "podman"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
 # podpack installs flask-security on every site. Declared anyway: this app now
 # imports it directly, and a dependency held only by somebody else's dependency
 # is one refactor upstream from vanishing. podpack-pdf and podpack-qrcode
