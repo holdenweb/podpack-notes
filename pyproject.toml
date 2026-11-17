@@ -67,7 +67,11 @@ module-name = "podpack_notes"
 # From the repository, so `uv sync` works on any machine and in CI, which is
 # now what publishes this package. It was previously opted into by hand with
 # `uv pip install -e ../podpack`, which needed a sibling checkout.
-dev = ["pytest>=8.0", "mypy>=1.11", "podpack"]
+dev = [
+    "pytest>=8.0",
+    "mypy>=1.11",
+    "podpack",
+]
 
 [tool.uv.sources]
 podpack = { git = "https://github.com/holdenweb/podpack.git" }
