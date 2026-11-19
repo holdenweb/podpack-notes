@@ -1,18 +1,23 @@
-# Test on every push to main and every pull request.
+# Test on every push to main and every pull request -- and on every release
+# tag, when publish.yml calls this workflow and publishes only if it passes.
 #
-# publish.yml runs the tests too, but only when a release tag is pushed -- the
-# most expensive moment to find one failing. This runs them while a fix is
-# cheap, and adds mypy, which is configured here but has never been gated.
+# Run on main, it finds a failure while a fix is still cheap; run on the tag,
+# it decides whether the release happens at all. mypy is gated alongside the
+# tests.
 name: ci
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
 
 # A newer push to the same ref makes an in-flight run pointless; drop it.
+# github.workflow names the caller when publish.yml runs this, so a release's
+# run has a group of its own: no other run on the tag can cancel it, which
+# would skip the publish without a word.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
